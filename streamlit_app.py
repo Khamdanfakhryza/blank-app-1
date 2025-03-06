@@ -3,149 +3,169 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Judul aplikasi
-st.title("⚡ Simulasi Pengurangan Losses dan Analisis Tegangan pada Jaringan Distribusi")
+# Konfigurasi halaman
+st.set_page_config(page_title="Analisis Jaringan Distribusi", layout="wide")
+st.title("⚡ Analisis Losses dan Tegangan pada Jaringan Distribusi")
 st.markdown("""
-**Aplikasi ini mensimulasikan pengurangan losses (rugi-rugi daya) dan analisis tegangan pada jaringan distribusi listrik menggunakan metode Gauss-Seidel.**
+**Aplikasi untuk menganalisis losses dan profil tegangan pada jaringan distribusi di wilayah UP3 Semarang**
 """)
 
-# --- Informasi Daerah ---
-st.sidebar.title("Informasi Daerah")
-st.sidebar.markdown("""
-### **1. Boja**
-Boja adalah sebuah kecamatan di Kabupaten Kendal, Jawa Tengah. Daerah ini termasuk dalam wilayah layanan **UP3 Semarang**, yang mengelola distribusi listrik di wilayah Semarang dan sekitarnya. 
-Boja memiliki beban listrik yang cukup signifikan karena aktivitas industri dan rumah tangga.
+# Data untuk masing-masing daerah
+data_daerah = {
+    "UP3 Semarang": {
+        "Ybus": np.array([[complex(12, -8), complex(-6, 4)],
+                         [complex(-6, 4), complex(10, -6)]]),
+        "P_load": [0, 180],
+        "Q_load": [0, 90],
+        "V_initial": [complex(1.02, 0), complex(0.98, 0.04)],
+        "losses": {
+            "initial": 1088249105,
+            "current": 66970914
+        }
+    },
+    "Boja": {
+        "Ybus": np.array([[complex(12, -6), complex(-6, 3)],
+                         [complex(-6, 3), complex(10, -4)]]),
+        "P_load": [0, 250],
+        "Q_load": [0, 120],
+        "V_initial": [complex(1, 0), complex(0.98, 0.02)],
+        "losses": {
+            "initial": 73083664,
+            "current": 5193168
+        }
+    },
+    "Semarang Timur": {
+        "Ybus": np.array([[complex(10, -5), complex(-5, 2)],
+                         [complex(-5, 2), complex(8, -3)]]),
+        "P_load": [0, 200],
+        "Q_load": [0, 100],
+        "V_initial": [complex(1.02, 0), complex(0.97, 0.03)],
+        "losses": {
+            "initial": 229576732,
+            "current": 21343577
+        }
+    }
+}
 
-### **2. Semarang Timur**
-Semarang Timur adalah salah satu kecamatan di Kota Semarang yang termasuk dalam wilayah layanan **ULP (Unit Layanan Pelanggan) Semarang Timur**. 
-Daerah ini memiliki jaringan distribusi listrik yang padat karena kepadatan penduduk dan aktivitas komersial.
+# Sidebar untuk seleksi daerah
+selected_daerah = st.sidebar.selectbox(
+    "Pilih Daerah:",
+    list(data_daerah.keys()),
+    index=0
+)
 
-### **3. UP3 Semarang**
-UP3 (Unit Pelaksana Pelayanan Pelanggan) Semarang adalah unit operasional PLN yang bertanggung jawab atas distribusi listrik di wilayah Semarang, termasuk Boja dan Semarang Timur. 
-UP3 Semarang berfokus pada optimasi jaringan untuk mengurangi losses dan meningkatkan keandalan pasokan listrik.
-""")
-
-# --- Input Data ---
-st.header("📊 Input Data Jaringan")
-
-# Data impedansi saluran (matriks admitansi Ybus)
-st.subheader("Matriks Admitansi (Ybus)")
-Ybus = np.array([[complex(12, -6), complex(-6, 3)],
-                 [complex(-6, 3), complex(10, -4)]])
-st.write(Ybus)
-
-# Data beban
-st.subheader("Beban pada Setiap Node (P dan Q)")
-P_load = np.array([0, 250])  # kW
-Q_load = np.array([0, 120])  # kVAR
-st.write("P (kW):", P_load)
-st.write("Q (kVAR):", Q_load)
-
-# Tegangan awal
-st.subheader("Tegangan Awal pada Setiap Node")
-V = np.array([complex(1, 0), complex(0.98, 0.02)])
-st.write("Tegangan Awal (pu):", V)
-
-# --- Metode Gauss-Seidel ---
+# Fungsi Gauss-Seidel
 def gauss_seidel(Ybus, P_load, Q_load, V, tol=1e-6, max_iter=1000):
-    """
-    Menghitung tegangan pada setiap bus menggunakan metode Gauss-Seidel.
-    """
     num_bus = len(V)
     for iteration in range(max_iter):
         V_new = np.copy(V)
-        for i in range(1, num_bus):  # Mulai dari bus 1 (bus 0 adalah slack bus)
+        for i in range(1, num_bus):
             sum_YV = sum(Ybus[i, j] * V_new[j] for j in range(num_bus) if j != i)
             V_new[i] = (P_load[i] - 1j * Q_load[i]) / np.conj(V_new[i]) - sum_YV
             V_new[i] /= Ybus[i, i]
         if np.allclose(V, V_new, atol=tol):
-            st.write(f"Konvergensi tercapai dalam {iteration+1} iterasi.")
             break
         V = V_new
-    else:
-        st.write("Konvergensi tidak tercapai dalam jumlah iterasi maksimum.")
     return V
 
-# Jalankan metode Gauss-Seidel
-V_final = gauss_seidel(Ybus, P_load, Q_load, V)
+# Ambil data untuk daerah terpilih
+daerah = data_daerah[selected_daerah]
+V_final = gauss_seidel(daerah["Ybus"], 
+                      np.array(daerah["P_load"]), 
+                      np.array(daerah["Q_load"]), 
+                      np.array(daerah["V_initial"]))
 
-# --- Hasil Perhitungan ---
-st.header("📈 Hasil Perhitungan")
-
-# Menampilkan tegangan akhir
-st.subheader("Tegangan Akhir pada Setiap Node")
-tegangan_df = pd.DataFrame({
-    "Node": ["Node 1", "Node 2"],
-    "Tegangan (pu)": np.abs(V_final),
-    "Sudut (derajat)": np.angle(V_final, deg=True)
-})
-st.table(tegangan_df)
-
-# --- Analisis Losses ---
-st.header("📉 Analisis Losses")
-
-# Data losses
-initial_losses = 73083664  # kWh (rugi-rugi awal)
-total_losses = 5193168     # kWh (rugi-rugi sebelum optimasi)
-increased_losses = total_losses / 1.445  # Rugi-rugi setelah optimasi
-
-# Menghitung persentase losses
+# Hitung losses
+initial_losses = daerah["losses"]["initial"]
+total_losses = daerah["losses"]["current"]
+increased_losses = total_losses / 1.445
 persentase_losses = (total_losses / initial_losses) * 100
 
-# Menampilkan hasil losses
-st.subheader("Perbandingan Losses")
-col1, col2, col3 = st.columns(3)
-col1.metric("Losses Awal", f"{initial_losses:,} kWh")
-col2.metric("Losses Sebelum Optimasi", f"{total_losses:,} kWh")
-col3.metric("Losses Setelah Optimasi", f"{int(increased_losses):,} kWh")
+# Tampilkan hasil dalam tabs
+tab1, tab2, tab3 = st.tabs(["Hasil Perhitungan", "Analisis Losses", "Simulasi Bulanan"])
 
-# Grafik perbandingan losses
-fig1, ax1 = plt.subplots()
-ax1.bar(['Losses Awal', 'Losses Sebelum Optimasi', 'Losses Setelah Optimasi'],
-        [initial_losses, total_losses, increased_losses],
-        color=['red', 'orange', 'green'])
-ax1.set_title('Pengurangan Losses dalam Jaringan ULP BOJA')
-ax1.set_ylabel('Losses (kWh)')
-for i, value in enumerate([initial_losses, total_losses, increased_losses]):
-    ax1.text(i, value, f'{value:,.2f} kWh', ha='center', va='bottom')
-st.pyplot(fig1)
+with tab1:
+    st.header(f"Hasil Perhitungan untuk {selected_daerah}")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Tegangan Akhir")
+        tegangan_df = pd.DataFrame({
+            "Node": ["Node 1", "Node 2"],
+            "|V| (pu)": np.abs(V_final),
+            "∠V (°)": np.angle(V_final, deg=True)
+        })
+        st.dataframe(tegangan_df.style.format({"|V| (pu)": "{:.4f}", "∠V (°)": "{:.2f}"}))
+    
+    with col2:
+        st.subheader("Parameter Jaringan")
+        st.write("**Matriks Admitansi (Ybus):**")
+        st.write(daerah["Ybus"])
+        st.write("**Beban Node 2:**")
+        st.write(f"P: {daerah['P_load'][1]} kW")
+        st.write(f"Q: {daerah['Q_load'][1]} kVAR")
 
-# --- Simulasi Pengurangan Losses Bulanan ---
-st.subheader("Simulasi Pengurangan Losses Bulanan")
+with tab2:
+    st.header(f"Analisis Losses {selected_daerah}")
+    
+    fig, ax = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Grafik Batang Losses
+    ax[0].bar(['Awal', 'Sebelum Optimasi', 'Setelah Optimasi'],
+             [initial_losses, total_losses, increased_losses],
+             color=['red', 'orange', 'green'])
+    ax[0].set_title('Perbandingan Losses')
+    ax[0].set_ylabel('Losses (kWh)')
+    for i, val in enumerate([initial_losses, total_losses, increased_losses]):
+        ax[0].text(i, val, f'{val/1e6:.2f} MWh', ha='center', va='bottom')
+    
+    # Grafik Pie Persentase
+    sizes = [persentase_losses, 100 - persentase_losses]
+    ax[1].pie(sizes, labels=['Losses', 'Daya Terkirim'], 
+             autopct='%1.1f%%', colors=['#ff9999','#66b3ff'])
+    ax[1].set_title('Persentase Losses')
+    
+    st.pyplot(fig)
 
-# Data simulasi
-months = ['May 24', 'June 24', 'July 24', 'August 24', 'September 24',
-          'October 24', 'November 24', 'December 24', 'January 25',
-          'February 25', 'March 25', 'April 25']
+with tab3:
+    st.header(f"Simulasi Pengurangan Losses {selected_daerah}")
+    
+    # Simulasi bulanan
+    months = ['May 24', 'June 24', 'July 24', 'August 24', 'September 24',
+             'October 24', 'November 24', 'December 24', 'January 25',
+             'February 25', 'March 25', 'April 25']
+    
+    monthly_losses = [total_losses]
+    monthly_percentage = [persentase_losses]
+    current = total_losses
+    
+    for _ in months[1:]:
+        current *= 0.85  # Reduksi 15% per bulan
+        monthly_losses.append(current)
+        monthly_percentage.append((current/initial_losses)*100)
+    
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(months, monthly_percentage, marker='o', linestyle='--')
+    ax.set_title('Proyeksi Pengurangan Losses')
+    ax.set_ylabel('Persentase Losses (%)')
+    ax.grid(True)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+    
+    st.write("**Detail Simulasi Bulanan:**")
+    simulasi_df = pd.DataFrame({
+        "Bulan": months,
+        "Losses (kWh)": monthly_losses,
+        "Persentase (%)": monthly_percentage
+    })
+    st.dataframe(simulasi_df.style.format({"Losses (kWh)": "{:,.0f}", "Persentase (%)": "{:.2f}"}))
 
-target_percentage = 4.0  # Target persentase losses
-monthly_losses = [total_losses]
-monthly_percentage_losses = [(total_losses / initial_losses) * 100]
-current_losses = total_losses
-current_percentage_losses = monthly_percentage_losses[0]
-
-for month in months[1:]:
-    if current_percentage_losses <= target_percentage:
-        break
-    reduction_percentage = (current_percentage_losses - target_percentage) / (len(months) - months.index(month))
-    new_losses = current_losses * (1 - reduction_percentage / 100)
-    current_losses = new_losses
-    monthly_losses.append(new_losses)
-    monthly_percentage_losses.append((new_losses / initial_losses) * 100)
-
-# Grafik simulasi pengurangan losses
-fig2, ax2 = plt.subplots()
-ax2.plot(months, monthly_percentage_losses, marker='o', color='blue')
-ax2.set_title('Simulasi Pengurangan Persentase Losses dari Mei 2024 hingga April 2025')
-ax2.set_ylabel('Losses (%)')
-ax2.set_xlabel('Bulan')
-for i, (month, percentage) in enumerate(zip(months, monthly_percentage_losses)):
-    ax2.text(i, percentage, f'{percentage:.2f}%', ha='center', va='bottom')
-st.pyplot(fig2)
-
-# --- Penutup ---
-st.markdown("""
+# Informasi daerah di sidebar
+st.sidebar.markdown("""
 ---
-**Aplikasi ini dibuat untuk memvisualisasikan pengurangan losses dan analisis tegangan pada jaringan distribusi listrik di wilayah Boja, Semarang Timur, dan UP3 Semarang.**
-Dengan memahami konsep losses dan metode Gauss-Seidel, kita dapat mengoptimalkan jaringan listrik untuk meningkatkan efisiensi.
+**Informasi Daerah:**
+- **UP3 Semarang**: Wilayah pelayanan distribusi listrik di Kota Semarang
+- **Boja**: Kecamatan di Kabupaten Kendal dengan beban industri
+- **Semarang Timur**: Wilayah padat penduduk dengan kebutuhan komersial tinggi
 """)
