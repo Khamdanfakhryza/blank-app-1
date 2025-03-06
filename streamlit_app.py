@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
 
 # Judul aplikasi
 st.title("⚡ Simulasi Pengurangan Losses dan Analisis Tegangan pada Jaringan Distribusi")
@@ -10,20 +9,20 @@ st.markdown("""
 **Aplikasi ini mensimulasikan pengurangan losses (rugi-rugi daya) dan analisis tegangan pada jaringan distribusi listrik menggunakan metode Gauss-Seidel.**
 """)
 
-# --- Penjelasan Teoritis ---
-st.sidebar.title("Pengetahuan Dasar")
+# --- Informasi Daerah ---
+st.sidebar.title("Informasi Daerah")
 st.sidebar.markdown("""
-### **1. Losses (Rugi-Rugi Daya)**
-Losses adalah daya yang hilang dalam jaringan distribusi listrik akibat resistansi kabel, transformator, dan komponen lainnya. 
-Rugi-rugi ini dapat dikurangi dengan optimasi jaringan, seperti penyeimbangan beban dan perbaikan faktor daya.
+### **1. Boja**
+Boja adalah sebuah kecamatan di Kabupaten Kendal, Jawa Tengah. Daerah ini termasuk dalam wilayah layanan **UP3 Semarang**, yang mengelola distribusi listrik di wilayah Semarang dan sekitarnya. 
+Boja memiliki beban listrik yang cukup signifikan karena aktivitas industri dan rumah tangga.
 
-### **2. Metode Gauss-Seidel**
-Metode Gauss-Seidel adalah teknik iteratif untuk menyelesaikan sistem persamaan linear, sering digunakan dalam analisis aliran daya (load flow) 
-untuk menghitung tegangan pada setiap bus (node) dalam jaringan listrik.
+### **2. Semarang Timur**
+Semarang Timur adalah salah satu kecamatan di Kota Semarang yang termasuk dalam wilayah layanan **ULP (Unit Layanan Pelanggan) Semarang Timur**. 
+Daerah ini memiliki jaringan distribusi listrik yang padat karena kepadatan penduduk dan aktivitas komersial.
 
-### **3. Matriks Admitansi (Ybus)**
-Matriks admitansi (Ybus) menggambarkan hubungan antara tegangan dan arus pada setiap bus dalam jaringan. 
-Elemen-elemennya terdiri dari admitansi sendiri (diagonal) dan admitansi mutual (off-diagonal).
+### **3. UP3 Semarang**
+UP3 (Unit Pelaksana Pelayanan Pelanggan) Semarang adalah unit operasional PLN yang bertanggung jawab atas distribusi listrik di wilayah Semarang, termasuk Boja dan Semarang Timur. 
+UP3 Semarang berfokus pada optimasi jaringan untuk mengurangi losses dan meningkatkan keandalan pasokan listrik.
 """)
 
 # --- Input Data ---
@@ -139,6 +138,6 @@ st.plotly_chart(fig2)
 # --- Penutup ---
 st.markdown("""
 ---
-**Aplikasi ini dibuat untuk memvisualisasikan pengurangan losses dan analisis tegangan pada jaringan distribusi listrik.**
+**Aplikasi ini dibuat untuk memvisualisasikan pengurangan losses dan analisis tegangan pada jaringan distribusi listrik di wilayah Boja, Semarang Timur, dan UP3 Semarang.**
 Dengan memahami konsep losses dan metode Gauss-Seidel, kita dapat mengoptimalkan jaringan listrik untuk meningkatkan efisiensi.
 """)
