@@ -1,19 +1,63 @@
-# 🎈 Blank app template
+⚡ Analisis Losses dan Tegangan pada Jaringan Distribusi
+Aplikasi ini digunakan untuk menganalisis losses dan profil tegangan pada jaringan distribusi di wilayah UP3 Semarang. Pengguna dapat memilih daerah yang diinginkan untuk melihat hasil perhitungan analisis tegangan dan losses, serta melakukan simulasi pengurangan losses dalam periode bulanan.
 
-A simple Streamlit app template for you to modify!
+Deskripsi Aplikasi
+Aplikasi ini menyediakan beberapa fitur utama:
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+Analisis Tegangan: Menampilkan tegangan akhir pada node-node dalam jaringan distribusi, serta parameter jaringan seperti matriks admitansi (Ybus) dan beban di setiap node.
+Analisis Losses: Menampilkan perbandingan losses (kWh) sebelum dan setelah optimasi, serta persentase losses terhadap daya yang dikirim.
+Simulasi Pengurangan Losses Bulanan: Menampilkan proyeksi pengurangan losses dalam periode bulanan berdasarkan pengurangan 15% per bulan.
+Fitur Aplikasi
+Pilih Daerah: Pengguna dapat memilih salah satu dari tiga daerah:
 
-### How to run it on your own machine
+UP3 Semarang
+Boja
+Semarang Timur
+Tab Hasil Perhitungan: Menampilkan tegangan akhir pada jaringan distribusi dan parameter jaringan yang relevan.
 
-1. Install the requirements
+Tab Analisis Losses: Menampilkan grafik perbandingan losses dan persentase losses.
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+Tab Simulasi Bulanan: Menampilkan simulasi pengurangan losses secara bertahap selama 12 bulan.
 
-2. Run the app
+Struktur Data
+Aplikasi ini menggunakan data berikut untuk analisis:
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+Matriks Admitansi (Ybus): Matriks admitansi jaringan distribusi untuk masing-masing daerah.
+P_load dan Q_load: Beban aktif dan reaktif pada setiap node.
+V_initial: Tegangan awal pada setiap node.
+Losses: Nilai losses awal dan setelah optimasi untuk setiap daerah.
+Cara Penggunaan
+Install dependensi dengan menggunakan pip:
+
+bash
+Salin
+Edit
+pip install streamlit numpy pandas matplotlib
+Jalankan aplikasi dengan perintah:
+
+bash
+Salin
+Edit
+streamlit run app.py
+Pilih daerah dari sidebar untuk melihat hasil analisis dan simulasi.
+
+Informasi Daerah
+1. UP3 Semarang
+Wilayah pelayanan distribusi listrik di Kota Semarang.
+Beban node: 0 kW, 180 kW (Node 1, Node 2).
+2. Boja
+Kecamatan di Kabupaten Kendal dengan beban industri.
+Beban node: 0 kW, 250 kW (Node 1, Node 2).
+3. Semarang Timur
+Wilayah padat penduduk dengan kebutuhan komersial tinggi.
+Beban node: 0 kW, 200 kW (Node 1, Node 2).
+Dependencies
+Streamlit: Untuk membuat aplikasi web interaktif.
+NumPy: Untuk perhitungan numerik.
+Pandas: Untuk pengolahan data dan tabel.
+Matplotlib: Untuk membuat grafik visualisasi.
+Kontribusi
+Jika Anda ingin berkontribusi pada proyek ini, silakan fork repository ini dan buat pull request dengan perubahan atau perbaikan yang diusulkan.
+
+Lisensi
+Proyek ini menggunakan lisensi MIT - lihat file LICENSE untuk detail lebih lanjut.
