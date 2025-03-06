@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 
 # Streamlit Title
 st.title("Simulasi Pengurangan Losses dan Analisis Tegangan")
