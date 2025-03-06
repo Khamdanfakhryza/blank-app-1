@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 
 # Judul aplikasi
 st.title("⚡ Simulasi Pengurangan Losses dan Analisis Tegangan pada Jaringan Distribusi")
@@ -59,11 +59,14 @@ def gauss_seidel(Ybus, P_load, Q_load, V, tol=1e-6, max_iter=1000):
             V_new[i] = (P_load[i] - 1j * Q_load[i]) / np.conj(V_new[i]) - sum_YV
             V_new[i] /= Ybus[i, i]
         if np.allclose(V, V_new, atol=tol):
+            st.write(f"Konvergensi tercapai dalam {iteration+1} iterasi.")
             break
         V = V_new
+    else:
+        st.write("Konvergensi tidak tercapai dalam jumlah iterasi maksimum.")
     return V
 
-# Menjalankan metode Gauss-Seidel
+# Jalankan metode Gauss-Seidel
 V_final = gauss_seidel(Ybus, P_load, Q_load, V)
 
 # --- Hasil Perhitungan ---
@@ -97,13 +100,15 @@ col2.metric("Losses Sebelum Optimasi", f"{total_losses:,} kWh")
 col3.metric("Losses Setelah Optimasi", f"{int(increased_losses):,} kWh")
 
 # Grafik perbandingan losses
-fig1 = go.Figure()
-fig1.add_trace(go.Bar(x=['Losses Awal', 'Losses Sebelum Optimasi', 'Losses Setelah Optimasi'],
-                      y=[initial_losses, total_losses, increased_losses],
-                      marker_color=['red', 'orange', 'green']))
-fig1.update_layout(title="Perbandingan Losses dalam Jaringan",
-                   yaxis_title="Losses (kWh)")
-st.plotly_chart(fig1)
+fig1, ax1 = plt.subplots()
+ax1.bar(['Losses Awal', 'Losses Sebelum Optimasi', 'Losses Setelah Optimasi'],
+        [initial_losses, total_losses, increased_losses],
+        color=['red', 'orange', 'green'])
+ax1.set_title('Pengurangan Losses dalam Jaringan ULP BOJA')
+ax1.set_ylabel('Losses (kWh)')
+for i, value in enumerate([initial_losses, total_losses, increased_losses]):
+    ax1.text(i, value, f'{value:,.2f} kWh', ha='center', va='bottom')
+st.pyplot(fig1)
 
 # --- Simulasi Pengurangan Losses Bulanan ---
 st.subheader("Simulasi Pengurangan Losses Bulanan")
@@ -129,11 +134,14 @@ for month in months[1:]:
     monthly_percentage_losses.append((new_losses / initial_losses) * 100)
 
 # Grafik simulasi pengurangan losses
-fig2 = go.Figure()
-fig2.add_trace(go.Scatter(x=months, y=monthly_percentage_losses, mode='lines+markers', marker=dict(color='blue')))
-fig2.update_layout(title="Simulasi Pengurangan Persentase Losses",
-                   xaxis_title="Bulan", yaxis_title="Losses (%)")
-st.plotly_chart(fig2)
+fig2, ax2 = plt.subplots()
+ax2.plot(months, monthly_percentage_losses, marker='o', color='blue')
+ax2.set_title('Simulasi Pengurangan Persentase Losses dari Mei 2024 hingga April 2025')
+ax2.set_ylabel('Losses (%)')
+ax2.set_xlabel('Bulan')
+for i, (month, percentage) in enumerate(zip(months, monthly_percentage_losses)):
+    ax2.text(i, percentage, f'{percentage:.2f}%', ha='center', va='bottom')
+st.pyplot(fig2)
 
 # --- Penutup ---
 st.markdown("""
